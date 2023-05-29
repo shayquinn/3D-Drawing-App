@@ -4,6 +4,9 @@ package venus3d;
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
 
+/**
+ * The Main class creates a JFrame and adds a Venus3D object to it.
+ */
 public class Main {
         public static void main(String[] args) {
         JFrame frame = new JFrame("PaintSurface Test");
@@ -14,7 +17,6 @@ public class Main {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-    }
-    
-}
+    } 
+}//end Main
 

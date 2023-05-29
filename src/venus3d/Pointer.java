@@ -1,6 +1,10 @@
 
 package venus3d;
 
+/**
+ * The Pointer class has two private variables, pointer and ArrayPointer, and methods to get and set
+ * their values.
+ */
 public class Pointer {
     private double pointer;
     private int ArrayPointer;
@@ -32,4 +36,4 @@ public class Pointer {
     }
     
     
-}
+}//end Pointer

@@ -19,13 +19,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +32,10 @@ import javax.swing.ImageIcon;
 
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.Timer;
 //import sun.awt.image.codec.JPEGImageEncoderImpl;
 
@@ -64,25 +58,18 @@ public class Venus3D extends JPanel implements ActionListener {
     }
 
     private double rotX = 0, rotY = 0, rotZ = 0;
-    private final Utility u;
     private final Spline sp;
 
-    //components
-    private JPanel radioPanel;
-    private JScrollPane jsp;
     private final PaintSurface paintSurface;
     //list varables
     private List<ArrayList<PointObj>> arrayOfArrays = new ArrayList<>();
-    private List<ArrayList<PointObj>> snapArrayOfArrays = new ArrayList<>();
-    private List<Pointer> pointerArray = new ArrayList<>();
-
     private BufferedImage canvas;
     JLabel canvasLabel;
     Graphics2D g2d;
 
     //boolean varables
-    private boolean mouseDown, selected;
-    private Point mouse, snapMouse;
+    private boolean mouseDown;
+    private Point mouse;
     private final boolean grid = false;
     private boolean spline = false;
     private boolean dots = false;
@@ -96,12 +83,8 @@ public class Venus3D extends JPanel implements ActionListener {
 
     // Point2D.Double ratio = new Point2D.Double(0.5, 0.75);
     Point2D.Double ratio = new Point2D.Double(3.25, 2);
-    //point varables
-    private Point staticDiff = new Point(0, 0);
     private Point diff = new Point(0, 0);
     //int varables
-
-    private Point3D ViewVector = new Point3D(300, 0, 0);
 
     List<PointObj> lp;
 
@@ -123,8 +106,6 @@ public class Venus3D extends JPanel implements ActionListener {
     private List<PointObj> space3d;
     private boolean SpaceBull = true;
 
-    private int rotateWeel = 0;
-
     private boolean stopStart = false;
 
     private static double ramerDouglasPeuckerAlgorithm = 5;
@@ -142,8 +123,11 @@ public class Venus3D extends JPanel implements ActionListener {
         new VenusPoint("Vm", new Point2D.Double(cp.x + 400, cp.y - 20), Color.RED, Color.white, 10, false)
     };
 
+// The below code is a constructor for a class called Venus3D. It initializes various objects and
+// variables, sets the size of the window, creates arrays, creates a canvas for drawing, sets up the 3D
+// space and axis, and starts a timer.
     public Venus3D() {
-        u = new Utility(screenW, screenH);
+        new Utility();
         sp = new Spline();
 
         this.setSize(screenW, screenH);
@@ -161,8 +145,13 @@ public class Venus3D extends JPanel implements ActionListener {
         setAxis3d();
         timer.start();
 
-    }
+    }//end Venus3D
 
+// The below code is defining a method called "setSpace" which initializes or clears an ArrayList
+// called "space3d" and adds 8 PointObj objects to it. These PointObj objects represent the corners of
+// a 2D space in 3D coordinates, with each PointObj having a position, velocity, acceleration,
+// rotation, and color. The space is defined as a rectangle with width "screenW" and height "screenH",
+// with the corners being (-screenW/2, -screenH/2), (screenW/2, -screenH/2), (screenW
     private void setSpace() {
         if (space3d == null) {
             space3d = new ArrayList<>();
@@ -182,6 +171,10 @@ public class Venus3D extends JPanel implements ActionListener {
 
     }//end setSpace
 
+// The below code is defining a method called "setAxis3d" which creates or clears an ArrayList called
+// "axis3d" and adds six PointObj objects to it. These PointObj objects represent the x, y, and z axes
+// of a 3D coordinate system, with two points for each axis representing the start and end points of
+// the axis line. The method also sets the color of the axes using an array called "colorArray".
     private void setAxis3d() {
         if (axis3d == null) {
             axis3d = new ArrayList<>();
@@ -202,6 +195,12 @@ public class Venus3D extends JPanel implements ActionListener {
         repaint();
     }
 
+// The code is an implementation of the actionPerformed method in a Java class. It checks if a timer
+// event has occurred and if the mouse is currently being pressed down. If so, it adds a new PointObj
+// to an ArrayList of ArrayLists called arrayOfArrays. It then iterates through each ArrayList in
+// arrayOfArrays and updates the x and y coordinates of each PointObj using a PointConverter class. If
+// a boolean variable stopStart is true, it rotates each ArrayList around the z-axis using a rotate
+// method. It then creates a list of Polygon3D objects using the craeatePolyListPent method
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -249,7 +248,7 @@ public class Venus3D extends JPanel implements ActionListener {
                 rotate(axis3d, true, 0, 0, 1);
             }
              */
- /*
+            /*
             for (int i = 0; i < lp.size(); i++) {
                 lp.get(i).setXy(PointConverter.convertPoint(lp.get(i)));
             }
@@ -258,39 +257,13 @@ public class Venus3D extends JPanel implements ActionListener {
             repaint();
 
         }
-    }
+    }//end actionPerformed
 
-    private List<Polygon3D> craeatePolyList(List<ArrayList<PointObj>> pol, int lineW) {
-        List<Polygon3D> pl = new ArrayList<>();
-        for (int i = 0; i < pol.size(); i++) {
-            for (int j = 0; j < pol.get(i).size() - 1; j++) {
-                pl.add(
-                        new Polygon3D(
-                                pol.get(i).get(j).getP3(),
-                                pol.get(i).get(j + 1).getP3(),
-                                new Point3D(
-                                        pol.get(i).get(j).getP3().getX(),
-                                        pol.get(i).get(j).getP3().getY(),
-                                        pol.get(i).get(j).getP3().getZ() + lineW
-                                )
-                        )
-                );
-                pl.add(
-                        new Polygon3D(
-                                pol.get(i).get(j + 1).getP3(),
-                                pol.get(i).get(j).getP3(),
-                                new Point3D(
-                                        pol.get(i).get(j + 1).getP3().getX(),
-                                        pol.get(i).get(j + 1).getP3().getY(),
-                                        pol.get(i).get(j + 1).getP3().getZ() - lineW
-                                )
-                        )
-                );
-            }
-        }
-        return pl;
-    }// end craeatePolyList
-
+// The below code is a Java method that takes in a list of lists of PointObj objects representing
+// polygons, along with other parameters such as line width, color, and rotation angles. It then
+// creates a list of Polygon3D objects by iterating through each polygon in the input list and creating
+// a series of triangles to represent the polygon in 3D space. The resulting list of Polygon3D objects
+// is returned.
     private List<Polygon3D> craeatePolyListPent(
             List<ArrayList<PointObj>> pol,
             int lineW,
@@ -352,6 +325,10 @@ public class Venus3D extends JPanel implements ActionListener {
         return pl;
     }// end craeatePolyList
 
+   /**
+    * The PaintSurface class is a JComponent that handles mouse events and painting of shapes on a 3D
+    * plane.
+    */
     private class PaintSurface extends JComponent {
 
         public PaintSurface() {
@@ -382,7 +359,6 @@ public class Venus3D extends JPanel implements ActionListener {
                         }
                         repaint();
                     } else {
-                        rotateWeel--;
                         System.out.println(steps);
                         for (ArrayList<PointObj> apo : arrayOfArrays) {
                             for (int i = 0; i < apo.size(); i++) {
@@ -444,23 +420,18 @@ public class Venus3D extends JPanel implements ActionListener {
 
                         context(e);
                     }
-                    snapArrayOfArrays = arrayOfArrays;
-                    snapMouse = mouse;
                 }//end mouseExited
 
                 @Override
                 public void mouseReleased(MouseEvent e) {
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         mouseDown = false;
-                        selected = false;
 
                     }
                     if (e.getButton() == MouseEvent.BUTTON2) {
                     }//System.out.println("Middle Click!");
                     if (e.getButton() == MouseEvent.BUTTON3) {
                     }
-                    staticDiff = diff;
-
                     color++;
                     if (color == colorArray.length - 1) {
                         color = 0;
@@ -502,6 +473,11 @@ public class Venus3D extends JPanel implements ActionListener {
 
     }//end PaintSurface
 
+// The below code is defining a method called "context" that creates a JPopupMenu with various
+// JMenuItem options. It sets the background color of certain options based on certain conditions. It
+// also adds ActionListeners to each JMenuItem option that perform certain actions when clicked, such
+// as toggling certain features or saving an image. Finally, it displays the JPopupMenu at the location
+// of a MouseEvent.
     public void context(MouseEvent e) {
         JPopupMenu jp = new JPopupMenu();
         JMenuItem ss = new JMenuItem("Stop-Strat");
@@ -687,6 +663,12 @@ public class Venus3D extends JPanel implements ActionListener {
         });
     }//end context
 
+// The below code is overriding the paint method of a Java graphics object. It sets the background
+// color to black and enables anti-aliasing. It then fills the entire graphics object with a light gray
+// color. It calls the pintRotation and Spliane methods to draw some graphics. It also has some
+// conditional statements that are currently commented out, which may be used to draw additional
+// graphics depending on the values of certain variables. Finally, it sets the composite of the
+// graphics object to be fully opaque.
     @Override
     public void paint(Graphics g) {
         super.paint(g);
@@ -721,6 +703,10 @@ public class Venus3D extends JPanel implements ActionListener {
         //order();
     }//end paint
 
+// The below code is defining a private method called "pintRotation" that takes a Graphics2D object as
+// a parameter. Within the method, it sets the stroke to a BasicStroke object with a width of 2, sets
+// the paint color to black, and draws a string that displays the values of rotX, rotY, and rotZ
+// variables at the position (70, 20) on the graphics object.
     private void pintRotation(Graphics2D g2) {
         BasicStroke lw = new BasicStroke(2);
         g2.setStroke(lw);
@@ -728,60 +714,12 @@ public class Venus3D extends JPanel implements ActionListener {
         g2.drawString("X:" + rotX + ", Y:" + rotY + ", Z:" + rotZ + ",", 70, 20);
     }//end pintRotation
 
-    private void space(Graphics2D g2) {
-
-        int sw = 1;
-
-        BasicStroke lw = new BasicStroke(sw);
-
-        GeneralPath p1 = new GeneralPath(GeneralPath.WIND_NON_ZERO);
-        /*
-        p1.moveTo(space3d.get(0).getXy().x, space3d.get(0).getXy().y);
-        p1.lineTo(space3d.get(1).getXy().x, space3d.get(1).getXy().y);
-        p1.lineTo(space3d.get(2).getXy().x, space3d.get(2).getXy().y);
-        p1.lineTo(space3d.get(3).getXy().x, space3d.get(3).getXy().y);
-        p1.lineTo(space3d.get(0).getXy().x, space3d.get(0).getXy().y);
-        
-         */
-
-        p1.moveTo(space3d.get(4).getXy().x, space3d.get(4).getXy().y);
-        p1.lineTo(space3d.get(5).getXy().x, space3d.get(5).getXy().y);
-        p1.lineTo(space3d.get(6).getXy().x, space3d.get(6).getXy().y);
-        p1.lineTo(space3d.get(7).getXy().x, space3d.get(7).getXy().y);
-        p1.lineTo(space3d.get(4).getXy().x, space3d.get(4).getXy().y);
-        g2.setStroke(lw);
-        g2.setPaint(Color.BLUE);
-        g2.draw(p1);
-    }//end space
-
-    private void axis(Graphics2D g2) {
-
-        int sw = 5;
-
-        BasicStroke lw = new BasicStroke(sw);
-
-        GeneralPath p1 = new GeneralPath(GeneralPath.WIND_NON_ZERO);
-        p1.moveTo(axis3d.get(0).getXy().x, axis3d.get(0).getXy().y);
-        p1.lineTo(axis3d.get(1).getXy().x, axis3d.get(1).getXy().y);
-        g2.setStroke(lw);
-        g2.setPaint(Color.RED);
-        g2.draw(p1);
-
-        GeneralPath p2 = new GeneralPath(GeneralPath.WIND_NON_ZERO);
-        p2.moveTo(axis3d.get(2).getXy().x, axis3d.get(2).getXy().y);
-        p2.lineTo(axis3d.get(3).getXy().x, axis3d.get(3).getXy().y);
-        g2.setStroke(lw);
-        g2.setPaint(Color.GREEN);
-        g2.draw(p2);
-
-        GeneralPath p3 = new GeneralPath(GeneralPath.WIND_NON_ZERO);
-        p3.moveTo(axis3d.get(4).getXy().x, axis3d.get(4).getXy().y);
-        p3.lineTo(axis3d.get(5).getXy().x, axis3d.get(5).getXy().y);
-        g2.setStroke(lw);
-        g2.setPaint(Color.BLUE);
-        g2.draw(p3);
-    }// end axis
-
+// The below code is defining a method called `paintBackground` that takes a `Graphics2D` object as a
+// parameter. This method is used to paint a grid-like background on a graphical user interface. It
+// sets the paint color to light gray, creates a basic stroke with a width of 1, and creates a general
+// path with a non-zero winding rule. It then uses two for loops to draw vertical and horizontal lines
+// at intervals of 100 pixels. Finally, it sets the stroke and paint color to light gray and draws the
+// path.
     private void paintBackground(Graphics2D g2) {
         g2.setPaint(Color.LIGHT_GRAY);
         BasicStroke lw = new BasicStroke(1);
@@ -801,28 +739,13 @@ public class Venus3D extends JPanel implements ActionListener {
 
     }//end paintBackground
 
-    private void paintLine(Graphics2D g2, List<PointObj> lp) {
-        int c = 3;
-        int sw = 5;
-        BasicStroke lw = new BasicStroke(10);
-        Color sc = Color.BLUE;
-        GeneralPath p = new GeneralPath(GeneralPath.WIND_NON_ZERO);
-        if (!(lp.isEmpty())) {
-            if (lp.size() > 0) {
-                p.moveTo(lp.get(0).getXy().x, lp.get(0).getXy().y);
-                for (PointObj po : lp) {
-                    p.lineTo(po.getXy().x, po.getXy().y);
-                }
-            }
-        }
-        g2.setStroke(lw);
-        g2.setPaint(colorArray[c]);
-        g2.draw(p);
-    }//end paintLine
-
+// The below code is a method in Java that takes a Graphics2D object and a list of Polygon3D objects as
+// input parameters. It converts the 3D polygons to 2D polygons and paints them on the graphics object.
+// It sets the stroke width to 1 and the color of the polygon based on the color of the Polygon3D
+// object. If the polygon is a frame, it draws the polygon outline, otherwise it fills the polygon. It
+// also draws a line from the centroid of the polygon to the center of the screen. If the "dots" flag
+// is set, it also
     private void paintLinePoly(Graphics2D g2, List<Polygon3D> pl) {
-        int c = 3;
-        int sw = 5;
         BasicStroke lw = new BasicStroke(1);
         g2.setStroke(lw);
         for (Polygon3D pli : pl) {
@@ -837,14 +760,6 @@ public class Venus3D extends JPanel implements ActionListener {
             } else {
                 g2.fillPolygon(poly);
             }
-            Point3D cent = pli.centroid();
-            Point3D Normal = pli.calcNormal();
-            Point3D np3 = new Point3D(
-                    Normal.getX(),
-                    Normal.getY(),
-                    Normal.getZ()
-            );
-            Point nnn = PointConverter.convertPoint(np3);
             Point centroid = PointConverter.convertPoint(pli.centroid());
 
             GeneralPath p = new GeneralPath(GeneralPath.WIND_NON_ZERO);
@@ -862,6 +777,12 @@ public class Venus3D extends JPanel implements ActionListener {
         }
     }//end paintLine
 
+// The below code is defining a method called "paintPolyPoints" that takes in a Graphics2D object and
+// three Point objects as parameters. Inside the method, it creates three Shape objects (ellipses)
+// using the Utility.drawEllipse method and sets their positions based on the Point objects passed in.
+// It then sets the stroke and paint color for the Graphics2D object and draws the three ellipses on
+// the screen using the g2d.draw method. The method is likely used to visually represent points in a
+// polygon.
     private void paintPolyPoints(Graphics2D g2, Point pl, Point p2, Point p3) {
         Shape s1 = Utility.drawEllipse(pl.x, pl.y, 3);
         Shape s2 = Utility.drawEllipse(p2.x, p2.y, 3);
@@ -884,6 +805,12 @@ public class Venus3D extends JPanel implements ActionListener {
 
     }//end paintPoints
 
+// The below code is defining a private method called "Spliane" that takes a Graphics2D object as a
+// parameter. Within the method, there is a conditional statement that checks if a boolean variable
+// "spline" is true. If it is true, then the method calls another method called "paintSpliane" and
+// passes in the Graphics2D object and the result of calling a method called "drawSplines" on an object
+// called "sp" with a parameter of an array of arrays. If "spline" is false, then the method calls
+// another method called "paintLinePoly"
     private void Spliane(Graphics2D g2) {
         if (spline) {
             arrayOfArrays.forEach((lp) -> {
@@ -899,6 +826,11 @@ public class Venus3D extends JPanel implements ActionListener {
         }
     }//end Spliane
 
+// The below code is a method in Java that takes in a Graphics2D object and a List of PointObj objects
+// as parameters. It iterates through the list of PointObj objects and draws a red ellipse with a black
+// outline at each point on the Graphics2D object. The ellipse is drawn using the drawEllipse method
+// from the Utility class, and the position of the ellipse is adjusted by the diff.x and diff.y values.
+// The method uses a BasicStroke object with a width of 3 to draw the ellipse.
     private void paintSplianePoints(Graphics2D g2, List<PointObj> lp) {
         Shape r;
         BasicStroke lw = new BasicStroke(3);
@@ -915,6 +847,12 @@ public class Venus3D extends JPanel implements ActionListener {
         }
     }//end paintSplianePoints
 
+// The below code is a Java method that takes in a Graphics2D object and a List of PointObj objects as
+// parameters. It is used to draw a spline curve based on the points in the List. The method first sets
+// the stroke width and color, and then checks the size of the List to determine how to draw the curve.
+// If the List has only one point, it draws a small ellipse at that point. If the List has two points,
+// it draws a straight line between them. If the List has three or more points, it draws a spline curve
+// using the quadratic or cubic Bezier
     private void paintSpliane(Graphics2D g2, List<PointObj> lp) {
         int c = 2;
         int sw = 10;
@@ -985,22 +923,11 @@ public class Venus3D extends JPanel implements ActionListener {
         }
     }//end paintSpliane
 
-    private List<PointObj> reducedSpliane(List<PointObj> list) {
-        List<Point2D.Double> in = new ArrayList<>();
-        List<Point2D.Double> out = new ArrayList<>();
-        List<PointObj> tempLp = new ArrayList<>();
-        list.forEach((p) -> {
-            in.add(new Point2D.Double(p.getXy().x, p.getXy().y));
-        });
-        if (in.size() > 2) {
-            RamerDouglasPeuckerAlgorithm.ramerDouglasPeucker(in, ramerDouglasPeuckerAlgorithm, out);
-        }
-        out.forEach((dp) -> {
-            tempLp.add(new PointObj(new Point((int) dp.x, (int) dp.y), new Point(0, 0), new Point(0, 0), colorArray[color]));
-        });
-        return tempLp;
-    }//end reducedSpliane
-
+// The below code is a Java method that takes a list of 2D points as input and returns a list of
+// PointObj objects. It first creates two empty lists, "in" and "out", and copies the input points to
+// "in". It then applies the Ramer-Douglas-Peucker algorithm to reduce the number of points in "in" and
+// stores the result in "out". Finally, it creates a PointObj object for each point in "out", adjusts
+// the coordinates, assigns a color, and adds it to the output list "tempLp", which is then returned
     private List<PointObj> reducedSplianeDP(List<Point2D.Double> list) {
         List<Point2D.Double> in = new ArrayList<>();
         List<Point2D.Double> out = new ArrayList<>();
@@ -1015,49 +942,20 @@ public class Venus3D extends JPanel implements ActionListener {
             tempLp.add(new PointObj(new Point((int) dp.x - (Venus3D.getScreenW() / 2), (int) dp.y - ((Venus3D.getScreenH() / 2) - 35)), new Point(0, 0), new Point(0, 0), colorArray[color]));
         });
         return tempLp;
-    }
+    }//end reducedSplianeDP
 
-    private void painPattern(Graphics2D g2) {
-
-        Shape s;
-        s = Utility.drawEllipse((int) vpa[0].getP().x, (int) vpa[0].getP().y, vpa[0].getR());
-        g2.setColor(vpa[0].getSc());
-        g2.setColor(vpa[0].getSc());
-        g2.drawString("s", (int) vpa[0].getP().x - 12, (int) vpa[0].getP().y + 5);
-        g2.setStroke(new BasicStroke(1));
-        g2.setPaint(vpa[0].getSc());
-        g2.draw(s);
-
-        s = Utility.drawEllipse((int) vpa[1].getP().x, (int) vpa[1].getP().y, vpa[1].getR());
-        g2.setColor(vpa[1].getSc());
-        g2.drawString("V", (int) vpa[1].getP().x - 17, (int) vpa[1].getP().y + 5);
-        g2.setStroke(new BasicStroke(1));
-        g2.setPaint(vpa[1].getSc());
-        g2.draw(s);
-
-        s = Utility.drawEllipse((int) vpa[2].getP().x, (int) vpa[2].getP().y, vpa[2].getR());
-        g2.setColor(vpa[2].getSc());
-        g2.drawString("E", (int) vpa[2].getP().x - 19, (int) vpa[2].getP().y + 5);
-        g2.setStroke(new BasicStroke(1));
-        g2.setPaint(vpa[2].getSc());
-        g2.draw(s);
-
-        s = Utility.drawEllipse((int) vpa[3].getP().x, (int) vpa[3].getP().y, vpa[3].getR());
-        g2.setColor(vpa[3].getSc());
-        g2.drawString("Em", (int) vpa[3].getP().x - 19, (int) vpa[3].getP().y + 5);
-        g2.setStroke(new BasicStroke(1));
-        g2.setPaint(vpa[3].getSc());
-        g2.draw(s);
-
-        paintSpliane(g2, sp.drawSplines(lp));
-    }//end painPattern
-
+// The below code is a method in Java that creates arrays of points representing the positions of
+// Earth, Venus, and Venus's moon over time. It takes in four VenusPoint objects representing the
+// initial positions of Earth, Venus, Venus's moon, and the Sun, as well as a rotation angle and a
+// ratio. It uses a while loop to calculate the positions of Earth, Venus, and Venus's moon at each
+// time step, based on their initial positions and the rotation angle and ratio. It then uses a method
+// called reducedSplianeDP to calculate a reduced spline of the Venus points.
     private void createArrays(VenusPoint E, VenusPoint S, VenusPoint V, VenusPoint Vm, double sang, Point2D.Double ratio) {
         boolean stop = true;
         int i = 0;
         while (stop) {
             //sun rotation fixed distance
-            Earth.add(u.convertPoint((ratio.x * i) + sang, S.getP().x, S.getP().y, E.getP().x, E.getP().y));
+            Earth.add(Utility.convertPoint((ratio.x * i) + sang, S.getP().x, S.getP().y, E.getP().x, E.getP().y));
             //venus roatation not fixed diatance
             Point2D.Double vv = Utility.convertPoint((ratio.y * i) + sang, V.getP().x, V.getP().y, S.getP().x, S.getP().y);
             Venus.add(Utility.convertPoint((ratio.x * i) + sang, vv.x, vv.y, E.getP().x, E.getP().y));
@@ -1074,6 +972,9 @@ public class Venus3D extends JPanel implements ActionListener {
         lp = reducedSplianeDP(Venus);
     }//end createArrays
 
+// The below code is a Java method called "rotate" that takes in a list of PointObj objects, a boolean
+// value indicating whether to rotate clockwise or counterclockwise, and three double values
+// representing the degrees of rotation around the x, y, and z axes.
     private void rotate(List<PointObj> lp, boolean CW, double xDegrees, double yDegrees, double zDegrees) {
         // System.out.println(xDegrees + " " + yDegrees + " " + zDegrees);
         rotX += xDegrees;
@@ -1092,27 +993,9 @@ public class Venus3D extends JPanel implements ActionListener {
         });
     }//end rotate
 
-    private void order() {
-        List<Pointer> pl = new ArrayList<>();
-        int ac = 0, c = 0;
-        arrayOfArrays.forEach((a) -> {
-            a.forEach((it) -> {
-                pl.add(new Pointer(counter0.intValue(), it.getP3().getZ()));
-                // System.out.println(counter.get()+" "+it.getP3().z);
-                // System.out.println(counter.intValue());
-            });
-            // System.out.println(".....................");
-            counter0.incrementAndGet();
-
-        });
-        counter0.set(0);
-        bubbleSort(pl);
-        pl.forEach((a) -> {
-            // System.out.println(a.getArrayPointer() + "   " + a.getPointer());
-        });
-
-    }//end order
-
+// The below code is implementing the bubble sort algorithm to sort a list of Pointer objects based on
+// their pointer values. It repeatedly compares adjacent elements in the list and swaps them if they
+// are in the wrong order, until the list is sorted in ascending order.
     public static void bubbleSort(List<Pointer> ps) {
         boolean sorted = false;
         Pointer temp;
@@ -1129,4 +1012,5 @@ public class Venus3D extends JPanel implements ActionListener {
         }
     }//end bubbleSort
 
-}
+}// end class Venus3D
+

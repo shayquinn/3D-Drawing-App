@@ -13,6 +13,10 @@ public class VenusPoint {
     private int r;
     private boolean sel;
 
+    // This is a class called `VenusPoint` that represents a point in a 2D space. It has several
+    // properties such as name, position (represented by a `Point2D.Double` object), stroke color, fill
+    // color, radius, and selection status. The constructor initializes all these properties, and the
+    // getter and setter methods allow access and modification of these properties.
     public VenusPoint(String name, Point2D.Double p, Color sc, Color fc, int r, boolean sel) {
         this.name = name;
         this.p = p;

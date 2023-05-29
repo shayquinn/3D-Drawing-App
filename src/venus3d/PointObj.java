@@ -8,6 +8,9 @@ package venus3d;
 import java.awt.Color;
 import java.awt.Point;
 
+/**
+ * The PointObj class represents a point in 3D space with associated colors and properties.
+ */
 class PointObj {
 
     private Point3D p3;

@@ -3,6 +3,9 @@ package venus3d;
 import java.awt.Color;
 import java.awt.Point;
 
+/**
+ * The Polygon3D class represents a 3D polygon with vertices, color, and frame properties.
+ */
 public class Polygon3D {
 
     private Point3D p1, p2, p3;
@@ -135,4 +138,4 @@ public class Polygon3D {
         return "Polygon3D{" + "p1=" + p1 + ", p2=" + p2 + ", p3=" + p3 + ", c=" + c + '}';
     }
 
-}
+}//end Polygon3D
